@@ -1,0 +1,12 @@
+﻿
+@{
+    ViewBag.Title = "Home Page";
+}
+
+@model  DatabaseProvider.dbo_users
+
+<main>
+    <h1>@ViewBag.Title</h1>
+    <h2>Welcome, @Model.Fullname</h2>
+    <p>Email: @Model.Uid</p>
+</main>

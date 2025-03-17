@@ -1,0 +1,17 @@
+﻿@*Truyền dữ liệu qua ViewBag và Model trong ASP.NET MVC*@
+@{
+    ViewBag.Title = "About";
+}
+
+@*Truy cập Model*@
+@model MyASPMVC.Models.MyModel
+
+
+<main aria-labelledby="title">
+    <h2 id="title">@ViewBag.Title.</h2>
+    <h3>@ViewBag.Message</h3>
+    @*Sử dụng viewbag để truyền dữ liệu từ controller sang view*@
+   @* Vì viewbag là dynamic nên có thể truyền bất kỳ kiểu dữ liệu nào , ko gợi ý*@ 
+    <h3>@Model.Name @ViewBag.MyObj.Phone</h3>
+    <p>Use this area to provide additional information.</p>
+</main>
