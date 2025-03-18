@@ -5,3 +5,5 @@ connect DB ở DatabaseProvider project
 xử lý query Database ở DatabaseIO project
 
 mcv -> databaseio -> databaseprovider -> view
+
+Update-Package Microsoft.CodeDom.Providers.DotNetCompilerPlatform -r
