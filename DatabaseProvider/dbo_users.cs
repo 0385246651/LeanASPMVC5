@@ -10,8 +10,7 @@
     public partial class dbo_users
     {
 
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // ID tự động tăng
+        [StringLength(50)]
         public string ID { get; set; }  // 👈 Đảm bảo không có [StringLength] ở đây!
 
         [Required]

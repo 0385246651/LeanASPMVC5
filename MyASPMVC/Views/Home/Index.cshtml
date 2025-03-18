@@ -1,12 +1,391 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Home Page";
 }
 
-@model  DatabaseProvider.dbo_users
+@model List<DatabaseProvider.dbo_users>
 
-<main>
-    <h1>@ViewBag.Title</h1>
-    <h2>Welcome, @Model.Fullname</h2>
-    <p>Email: @Model.Uid</p>
-</main>
+@section Styles {
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" />
+}
+
+<div class="container">
+    <h1 class="text-center">@ViewBag.Title</h1>
+
+    <!-- Nút "Add User" để mở Modal -->
+    <div class="text-right" style="margin-bottom: 15px;">
+        <button class="btn btn-success" data-toggle="modal" data-target="#addUserModal">
+            <i class="glyphicon glyphicon-plus"></i> Add User
+        </button>
+    </div>
+
+    <!-- Bảng danh sách người dùng -->
+    <table class="table table-bordered table-striped" id="UserList">
+        <thead>
+            <tr class="bg-primary">
+                <th>ID</th>
+                <th>Uid</th>
+                <th>Password</th>
+                <th>Fullname</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr id="tr_@item.ID">
+                    <td>@item.ID</td>
+                    <td class="uid">@item.Uid</td>
+                    <td class="pwd">@item.Pwd</td>
+                    <td class="name">@item.Fullname</td>
+                    <td class="text-align">
+                        <a href="javascript:BeginEdit('@item.ID', '@item.Uid','@item.Fullname', '@item.Pwd')" class="btn btn-primary btn-sm">
+                            <i class="glyphicon glyphicon-pencil"></i> Edit
+                        </a>
+                        <a href="javascript:Delete('@item.ID', '@item.Fullname')" class="btn btn-danger btn-sm">
+                            <i class="glyphicon glyphicon-trash"></i> Delete
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Add User -->
+<div id="addUserModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <!-- Nút đóng modal ở góc trên bên phải -->
+                <button type="button" class="close" data-dismiss="modal" style="position: absolute; right: 15px; top: 15px;">&times;</button>
+                <h4 class="modal-title text-center">Create New User</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" id="addUserForm">
+                    <div class="form-group">
+                        <label for="txUid" class="col-sm-3 control-label">Username</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="txUid" class="form-control" placeholder="Enter Username..." required />
+                            <span id="errorUid" class="text-danger"></span> <!-- Thông báo lỗi -->
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="txPwd1" class="col-sm-3 control-label">Password</label>
+                        <div class="col-sm-9">
+                            <input type="password" id="txPwd1" class="form-control" placeholder="Enter Password..." required />
+                            <span id="errorPwd1" class="text-danger"></span> <!-- Thông báo lỗi -->
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="txPwd2" class="col-sm-3 control-label">Re-Password</label>
+                        <div class="col-sm-9">
+                            <input type="password" id="txPwd2" class="form-control" placeholder="Enter Re-Password..." required />
+                            <span id="errorPwd2" class="text-danger"></span> <!-- Thông báo lỗi -->
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="txFullname" class="col-sm-3 control-label">Fullname</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="txFullname" class="form-control" placeholder="Enter Fullname..." required />
+                            <span id="errorFullname" class="text-danger"></span> <!-- Thông báo lỗi -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="saveUserBtn">
+                    <i class="glyphicon glyphicon-ok"></i> Save
+                </button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit User -->
+<div id="editUserModal" class="modal fade" role="dialog" >
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" style="position: absolute; right: 15px; top: 15px;" onclick="closeModal()">&times;</button>
+                <h4 class="modal-title text-center">Edit User</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" id="editUserForm">
+                    <input type="hidden" id="editID" />
+                    <div class="form-group">
+                        <label for="editUid" class="col-sm-3 control-label">Username</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="editUid" class="form-control" required />
+                            <span id="errorEditUid" class="text-danger"></span> <!-- Thông báo lỗi -->
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit" class="col-sm-3 control-label">PassWord</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="editPwd" class="form-control" required />
+                            <span id="errorEditPwd" class="text-danger"></span> <!-- Thông báo lỗi -->
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editFullname" class="col-sm-3 control-label">Fullname</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="editFullname" class="form-control" required />
+                            <span id="errorEditFullname" class="text-danger"></span> <!-- Thông báo lỗi -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="updateUserBtn">
+                    <i class="glyphicon glyphicon-ok"></i> Save Changes
+                </button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+
+        // do button ở trong modal nên phải gọi sự kiện click bằng cách này
+        // Hàm AddNewUser chưa được định nghĩa khi trình duyệt tải xong.
+        $(document).ready(function () {
+            $('#saveUserBtn').click(function () {
+                AddNewUser();
+            });
+        });
+
+        $(document).ready(function () {
+            $('#updateUserBtn').click(function () {
+                EditUser();
+            });
+        });
+
+        function AddNewUser() {
+            var username = document.getElementById("txUid").value.trim();
+            var password1 = document.getElementById("txPwd1").value.trim();
+            var password2 = document.getElementById("txPwd2").value.trim();
+            var fullname = document.getElementById("txFullname").value.trim();
+
+            // Xóa thông báo lỗi trước đó
+            document.getElementById("errorUid").innerText = "";
+            document.getElementById("errorPwd1").innerText = "";
+            document.getElementById("errorPwd2").innerText = "";
+            document.getElementById("errorFullname").innerText = "";
+
+            let isValid = true;
+
+            if (username === "") {
+                document.getElementById("errorUid").innerText = "Username is required!";
+                isValid = false;
+            }
+            if (password1 === "") {
+                document.getElementById("errorPwd1").innerText = "Password is required!";
+                isValid = false;
+            }
+            if (password2 === "") {
+                document.getElementById("errorPwd2").innerText = "Re-Password is required!";
+                isValid = false;
+            }
+            if (password1 !== password2) {
+                document.getElementById("errorPwd2").innerText = "Passwords do not match!";
+                isValid = false;
+            }
+            if (fullname === "") {
+                document.getElementById("errorFullname").innerText = "Fullname is required!";
+                isValid = false;
+            }
+
+            // tạo form data để gửi lên server
+            var form = new FormData();
+            form.append("uid", username);
+            form.append("pwd", password1);
+            form.append("fullname", fullname);
+            //Ajax Post to server
+            var xhr = new XMLHttpRequest();
+
+            //trạng thái của request
+            //abc.com Enter -> Server     1
+            //Server nhận request         2
+            //Server xử lý request        3
+            //Server trả về response      4
+
+            xhr.open("POST", "/Home/AddUser", true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    console.log("Server Response:", xhr.responseText); // Debug dữ liệu trả về
+                    if (xhr.status === 200) {
+                        var content = xhr.responseText;
+                        var json = JSON.parse(content);
+
+                        console.log(json)
+                        if (json.Data && json.Data.status == "OK") {
+                            // thêm vào bảng
+                            var tr = `<tr>
+                                <td>${json.Data.ID}</td>
+                                <td>${username}</td>
+                                <td>${password1}</td>
+                                <td>${fullname}</td>
+                                <td>
+                                    <a href="/Home/Edit/${json.Data.id}" class="btn btn-primary btn-sm">
+                                        <i class="glyphicon glyphicon-pencil"></i> Edit
+                                    </a>
+                                    <a href="/Home/Delete/${json.Data.id}" class="btn btn-danger btn-sm">
+                                        <i class="glyphicon glyphicon-trash"></i> Delete
+                                    </a>
+                                </td>
+                              </tr>`;
+                            $('#UserList tbody').append(tr);
+
+                            // Reset form
+                            $('#addUserForm')[0].reset();
+
+                            // Đóng modal
+                            $('#addUserModal').modal('hide');
+
+                            alert("User Created:\nUsername: " + username + "\nFullname: " + fullname);
+                        } else {
+                            alert("Error: " + (json.Data ? json.Data.message : "Invalid response"));
+                        }
+                    } else {
+                        alert("Request Failed: " + xhr.status);
+                    }
+                }
+            };
+
+            xhr.send(form);
+        }
+
+        function Delete(id, name) {
+            if (confirm('bạn có muốn xóa: ' + name)) {
+                var form = new FormData();
+                form.append('id', id);
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/Home/DeleteUser", true);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        console.log("Server Response:", xhr.responseText); // Debug dữ liệu trả về
+                        if (xhr.status === 200) {
+                            var content = xhr.responseText;
+                            var json = JSON.parse(content);
+
+                            console.log(json);
+                            if (json.Data && json.Data.status == "OK") {
+                                // Xóa db rồi - xóa row đó trong bảng
+                                $('#tr_' + id).remove();
+                                alert("Đã xóa tài khoản: " + name + "!");
+                            } else {
+                                alert("Lỗi: " + (json.Data ? json.Data.message : "Invalid response"));
+                            }
+                        }
+                    }
+                };
+                xhr.send(form); // ✅ Đã thêm dòng này để gửi request
+            }
+        }
+
+        //edit
+        function BeginEdit(id, uid, fullname, pwd) {
+
+            // Đổ dữ liệu vào modal
+            document.getElementById("editID").value = id; // Lưu ID vào input ẩn
+            document.getElementById("editUid").value = uid;
+            document.getElementById("editFullname").value = fullname;
+            document.getElementById("editPwd").value = pwd;
+
+            // Mở modal
+            $("#editUserModal").modal("show");
+
+            $("#editUserModal").css("display", "block");
+            $("#editUserModal").removeClass("fade");
+        }
+
+        const EditUser = () => {
+            var id = document.getElementById("editID").value;
+            var uid = document.getElementById("editUid") ? document.getElementById("editUid").value.trim() : "";
+            var fullname = document.getElementById("editFullname") ? document.getElementById("editFullname").value.trim() : "";
+            var pwd = document.getElementById("editPwd") ? document.getElementById("editPwd").value.trim() : "";
+            // Xóa thông báo lỗi trước đó
+            document.getElementById("errorEditUid").innerText = "";
+            document.getElementById("errorEditFullname").innerText = "";
+            document.getElementById("editPwd").innerText = "";
+
+            let isValid = true;
+
+            if (uid === "") {
+                document.getElementById("errorEditUid").innerText = "Username is required!";
+                isValid = false;
+            }
+            if (fullname === "") {
+                document.getElementById("errorEditFullname").innerText = "Fullname is required!";
+                isValid = false;
+            }
+
+            // tạo form data để gửi lên server
+            var form = new FormData();
+            form.append("id", id);
+            form.append("uid", uid);
+            form.append("fullname", fullname);
+            if (pwd !== "") {
+                form.append("pwd", pwd);
+            }
+            //Ajax Post to server
+            var xhr = new XMLHttpRequest();
+            console.log(form, "ádsadasdad")
+            //trạng thái của request
+            //abc.com Enter -> Server     1
+            //Server nhận request         2
+            //Server xử lý request        3
+            //Server trả về response      4
+
+            xhr.open("POST", "/Home/EditUser", true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    console.log("Server Response:", xhr.responseText); // Debug dữ liệu trả về
+                    if (xhr.status === 200) {
+                        var content = xhr.responseText;
+                        var json = JSON.parse(content);
+
+                        console.log(json)
+                        if (json.Data && json.Data.status == "OK") {
+                            //Sửa đổi html ở row đc sủa
+                            $('#tr_' + id).find('.uid').text(uid);
+                            $('#tr_' + id).find('.name').text(fullname);
+                            if (pwd !== "") {
+                                $('#tr_' + id).find('.pwd').text(pwd);
+                            }
+                            
+
+                            // Reset form
+                            $('#editUserForm')[0].reset();
+
+                            // Đóng modal
+                            $("#editUserModal").modal("hide");
+
+                            alert("Edit success !");
+                        } else {
+                            alert("Error: " + (json.Data ? json.Data.message : "Invalid response"));
+                        }
+                    } else {
+                        alert("Request Failed: " + xhr.status);
+                    }
+                }
+            };
+
+            xhr.send(form);
+        }
+
+        function closeModal() {
+            $("#editUserModal").modal("hide");
+
+        }
+
+
+    </script>
+}
