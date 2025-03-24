@@ -61,6 +61,20 @@ namespace MyASPMVC.Controllers
 
         public ActionResult Index()
         {
+            if (Session["user"] == null)
+            {
+                return RedirectToAction("Index", "Login");
+            }
+            else
+            {
+                dbo_users user = (dbo_users)Session["user"];
+                ViewBag.name = user.Fullname;
+            }
+            return View();
+        }
+
+        public ActionResult About()
+        {
             // kết nối lớp thao tác vs db
             DBIO db = new DBIO();
 

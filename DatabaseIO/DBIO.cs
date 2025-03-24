@@ -126,7 +126,16 @@ namespace DatabaseIO
             return mydb.Set<T>().Find(id);
         }
 
-        //Upate by id
+        //get detail by Username
+       public dbo_users GetObject_UserName(string uid)
+        {
+            return mydb.dbo_users.Where(x => x.Uid == uid).FirstOrDefault();
+        }
+
+
+
+        //Upate trực tiếp abwfng cách gọi đối dượng db thay đổi giá trị rồi save
+
 
 
 
