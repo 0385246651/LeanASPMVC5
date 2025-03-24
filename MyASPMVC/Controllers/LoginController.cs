@@ -49,5 +49,51 @@ namespace MyASPMVC.Controllers
 
             return Json(result, JsonRequestBehavior.AllowGet);
         }
+
+
+        public ActionResult Register()
+        {
+            if (Session["user"] != null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            return View();
+        }
+
+        public JsonResult RegisterUser(FormCollection data)
+        {
+            string uid = data["Uid"];
+            string pwd = data["Pwd"];
+            string fullname = data["Fullname"];
+
+            JsonResult js = new JsonResult();
+
+            if (string.IsNullOrEmpty(uid) ||
+                string.IsNullOrEmpty(pwd) ||
+                string.IsNullOrEmpty(fullname)
+            )
+            {
+                js.Data = new { status = "Er", message = "Not allow blank data !" };
+                return Json(js, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                // kết nối lớp thao tác vs db
+                DBIO db = new DBIO();
+                dbo_users user = new dbo_users();
+                // trả về 1 chuỗi GUID ngẫu nhiên chưa tồn tại
+                user.ID = Guid.NewGuid().ToString();
+                user.Uid = uid;
+                user.Pwd = pwd;
+                user.Fullname = fullname;
+                // thêm user mới
+                db.AddObject(user);
+
+                db.SaveChange();
+                js.Data = new { status = "OK", message = "Register success !", data = user };
+            }
+
+            return Json(js, JsonRequestBehavior.AllowGet);
+        }
     }
 }
